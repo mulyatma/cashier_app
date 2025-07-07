@@ -33,14 +33,14 @@ class _LoginPageState extends State<LoginPage> {
 
         final data = jsonDecode(response.body);
 
-        if (response.statusCode == 200 && data['success'] == true) {
+        if (response.statusCode == 200 && data['token'] != null) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('token', data['token']);
           await prefs.setString('userEmail', data['user']['email']);
 
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Login berhasil')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['message'] ?? 'Login berhasil')),
+          );
 
           print("Token disimpan, navigasi ke dashboard...");
           Navigator.pushReplacementNamed(context, '/dashboard');
@@ -69,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightBlue[50],
+      backgroundColor: Colors.green,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -117,12 +117,16 @@ class _LoginPageState extends State<LoginPage> {
                         ? CircularProgressIndicator()
                         : ElevatedButton(
                             onPressed: _login,
-                            child: Text('Login'),
                             style: ElevatedButton.styleFrom(
-                              minimumSize: Size(double.infinity, 48),
+                              minimumSize: const Size(double.infinity, 48),
                               backgroundColor: Colors.indigo,
                             ),
+                            child: const Text(
+                              'Login',
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
+
                     SizedBox(height: 12),
                     TextButton(
                       onPressed: _goToRegister,

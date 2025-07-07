@@ -21,33 +21,35 @@ class _SplashScreenState extends State<SplashScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
-    // Cek apakah token ada
-    print("Token yang ditemukan: $token");
-
-    // Delay animasi atau loading
     await Future.delayed(const Duration(seconds: 1));
 
-    // Ganti halaman setelah frame pertama selesai dibangun
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (token != null && token.isNotEmpty) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomePage()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-        );
-      }
-    });
+    if (token != null && token.isNotEmpty) {
+      if (!mounted) return;
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
+    } else {
+      if (!mounted) return;
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginPage()));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: Colors.indigo,
-      body: Center(child: CircularProgressIndicator(color: Colors.white)),
+      backgroundColor: Colors.green,
+      body: Center(
+        child: Text(
+          "KasirQu",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 }

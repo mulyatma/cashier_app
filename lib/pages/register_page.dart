@@ -71,7 +71,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightBlue[50],
+      backgroundColor: Colors.green,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -134,8 +134,18 @@ class _RegisterPageState extends State<RegisterPage> {
                               minimumSize: const Size(double.infinity, 48),
                               backgroundColor: Colors.indigo,
                             ),
-                            child: const Text("Daftar"),
+                            child: const Text(
+                              "Daftar",
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
+                    SizedBox(height: 12),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/login');
+                      },
+                      child: Text("Sudah punya akun? Masuk"),
+                    ),
                   ],
                 ),
               ),
