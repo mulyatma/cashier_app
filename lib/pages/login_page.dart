@@ -17,6 +17,14 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
+  String _selectedRole = 'Owner'; // Default selected role
+
+  // Endpoint owner dan karyawan
+  final String ownerLoginUrl =
+      'https://be-aplikasi-kasir.vercel.app/api/auth/login';
+  final String employeeLoginUrl =
+      'https://be-aplikasi-kasir.vercel.app/api/auth/login-employee';
+
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
@@ -24,9 +32,22 @@ class _LoginPageState extends State<LoginPage> {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
 
+      // Pilih endpoint sesuai role
+      final endpoint = _selectedRole == 'Owner'
+          ? ownerLoginUrl
+          : employeeLoginUrl;
+
+      if (endpoint.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Endpoint login karyawan belum diatur')),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
+
       try {
         final response = await http.post(
-          Uri.parse('https://be-aplikasi-kasir.vercel.app/api/auth/login'),
+          Uri.parse(endpoint),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'identifier': email, 'password': password}),
         );
@@ -36,7 +57,13 @@ class _LoginPageState extends State<LoginPage> {
         if (response.statusCode == 200 && data['token'] != null) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('token', data['token']);
-          await prefs.setString('userEmail', data['user']['email']);
+
+          // Simpan email atau name tergantung role
+          if (_selectedRole == 'Owner') {
+            await prefs.setString('userEmail', data['user']['email']);
+          } else {
+            await prefs.setString('userEmail', data['employee']['email']);
+          }
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(data['message'] ?? 'Login berhasil')),
@@ -89,10 +116,11 @@ class _LoginPageState extends State<LoginPage> {
                       "Login Kasir",
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
+
                     TextFormField(
                       controller: _emailController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Email',
                         border: OutlineInputBorder(),
                       ),
@@ -100,11 +128,11 @@ class _LoginPageState extends State<LoginPage> {
                           ? 'Email wajib diisi'
                           : null,
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Password',
                         border: OutlineInputBorder(),
                       ),
@@ -112,9 +140,32 @@ class _LoginPageState extends State<LoginPage> {
                           ? 'Password wajib diisi'
                           : null,
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 16),
+
+                    DropdownButtonFormField<String>(
+                      value: _selectedRole,
+                      decoration: const InputDecoration(
+                        labelText: 'Login sebagai',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: ['Owner', 'Karyawan']
+                          .map(
+                            (role) => DropdownMenuItem(
+                              value: role,
+                              child: Text(role),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedRole = value!;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
                     _isLoading
-                        ? CircularProgressIndicator()
+                        ? const CircularProgressIndicator()
                         : ElevatedButton(
                             onPressed: _login,
                             style: ElevatedButton.styleFrom(
@@ -126,11 +177,10 @@ class _LoginPageState extends State<LoginPage> {
                               style: TextStyle(color: Colors.white),
                             ),
                           ),
-
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     TextButton(
                       onPressed: _goToRegister,
-                      child: Text("Belum punya akun? Daftar"),
+                      child: const Text("Belum punya akun? Daftar"),
                     ),
                   ],
                 ),
