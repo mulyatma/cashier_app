@@ -12,6 +12,7 @@ class TransactionPage extends StatefulWidget {
 
 class _TransactionPageState extends State<TransactionPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  String? _userRole;
 
   int _selectedIndex = 1;
 
@@ -22,6 +23,14 @@ class _TransactionPageState extends State<TransactionPage> {
   void initState() {
     super.initState();
     _menusFuture = fetchMenus();
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userRole = prefs.getString('Role');
+    });
   }
 
   Future<List<dynamic>> fetchMenus() async {
@@ -189,42 +198,45 @@ class _TransactionPageState extends State<TransactionPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.menu_book),
-              title: const Text('Menu'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacementNamed(context, '/menus');
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.shopping_cart),
               title: const Text('Transaksi'),
               onTap: () {
                 Navigator.pop(context);
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.receipt_long),
-              title: const Text('Laporan'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacementNamed(context, '/reports');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Karyawan'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/employees');
-              },
-            ),
+            if (_userRole == 'Owner') ...[
+              ListTile(
+                leading: const Icon(Icons.menu_book),
+                title: const Text('Menu'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/menus');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.receipt_long),
+                title: const Text('Laporan'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/reports');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.person),
+                title: const Text('Karyawan'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/employees');
+                },
+              ),
+            ],
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
               onTap: () async {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.remove('token');
+                await prefs.remove('Role');
 
                 Navigator.pushNamedAndRemoveUntil(
                   context,

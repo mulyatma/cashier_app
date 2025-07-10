@@ -61,8 +61,10 @@ class _LoginPageState extends State<LoginPage> {
           // Simpan email atau name tergantung role
           if (_selectedRole == 'Owner') {
             await prefs.setString('userEmail', data['user']['email']);
+            await prefs.setString('Role', 'Owner');
           } else {
             await prefs.setString('userEmail', data['employee']['email']);
+            await prefs.setString('Role', 'Employee');
           }
 
           ScaffoldMessenger.of(context).showSnackBar(

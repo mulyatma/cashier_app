@@ -13,6 +13,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  String? _userRole;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userRole = prefs.getString('Role');
+    });
+  }
 
   Future<List<dynamic>> fetchMenus() async {
     final prefs = await SharedPreferences.getInstance();
@@ -149,14 +163,6 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.menu_book),
-              title: const Text('Menu'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/menus');
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.shopping_cart),
               title: const Text('Transaksi'),
               onTap: () {
@@ -164,28 +170,41 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pushNamed(context, '/transactions');
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.receipt_long),
-              title: const Text('Laporan'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/reports');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Karyawan'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/employees');
-              },
-            ),
+
+            if (_userRole == 'Owner') ...[
+              ListTile(
+                leading: const Icon(Icons.menu_book),
+                title: const Text('Menu'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/menus');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.receipt_long),
+                title: const Text('Laporan'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/reports');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.person),
+                title: const Text('Karyawan'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/employees');
+                },
+              ),
+            ],
+
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
               onTap: () async {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.remove('token');
+                await prefs.remove('Role');
 
                 Navigator.pushNamedAndRemoveUntil(
                   context,
@@ -420,18 +439,21 @@ class _HomePageState extends State<HomePage> {
                                     color: Colors.black,
                                   ),
                                 ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pushNamed(context, '/menus');
-                                  },
-                                  child: const Text(
-                                    "Lihat Semua Menu",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.green,
+
+                                if (_userRole == 'Owner') ...[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pushNamed(context, '/menus');
+                                    },
+                                    child: const Text(
+                                      "Lihat Semua Menu",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.green,
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ],
                             ),
 

@@ -68,19 +68,19 @@ class _ManageEmployeesPageState extends State<ManageEmployeesPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.menu_book),
-              title: const Text('Menu'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/menus');
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.shopping_cart),
               title: const Text('Transaksi'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, '/transactions');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.menu_book),
+              title: const Text('Menu'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/menus');
               },
             ),
             ListTile(
@@ -105,6 +105,7 @@ class _ManageEmployeesPageState extends State<ManageEmployeesPage> {
               onTap: () async {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.remove('token');
+                await prefs.remove('Role');
 
                 Navigator.pushNamedAndRemoveUntil(
                   context,
