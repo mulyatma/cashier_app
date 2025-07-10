@@ -1,3 +1,4 @@
+import 'package:cashier_app/pages/add_employee_page.dart';
 import 'package:cashier_app/pages/history_page.dart';
 import 'package:cashier_app/pages/payment_page.dart';
 import 'package:cashier_app/pages/transaction_detail_page.dart';
@@ -11,6 +12,7 @@ import 'pages/add_menu_page.dart';
 import 'pages/all_menu_page.dart';
 import 'pages/transaction_page.dart';
 import 'pages/report_page.dart';
+import 'pages/all_employee_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,6 +44,8 @@ class MainApp extends StatelessWidget {
         '/payment': (context) => const PaymentPage(),
         '/transaction-detail': (context) => const TransactionDetailPage(),
         '/reports': (context) => const ReportPage(),
+        '/employees': (context) => const ManageEmployeesPage(),
+        '/add-employee': (context) => const AddEmployeePage(),
       },
       debugShowCheckedModeBanner: false,
     );

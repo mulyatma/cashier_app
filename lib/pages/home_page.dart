@@ -173,6 +173,14 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Karyawan'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/employees');
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
               onTap: () async {
