@@ -171,7 +171,7 @@ class _HomePageState extends State<HomePage> {
               },
             ),
 
-            if (_userRole == 'Owner') ...[
+            if (_userRole == 'owner') ...[
               ListTile(
                 leading: const Icon(Icons.menu_book),
                 title: const Text('Menu'),
@@ -440,7 +440,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
 
-                                if (_userRole == 'Owner') ...[
+                                if (_userRole == 'owner') ...[
                                   TextButton(
                                     onPressed: () {
                                       Navigator.pushNamed(context, '/menus');

@@ -17,13 +17,8 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  String _selectedRole = 'Owner'; // Default selected role
-
-  // Endpoint owner dan karyawan
   final String ownerLoginUrl =
       'https://be-aplikasi-kasir.vercel.app/api/auth/login';
-  final String employeeLoginUrl =
-      'https://be-aplikasi-kasir.vercel.app/api/auth/login-employee';
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
@@ -32,22 +27,9 @@ class _LoginPageState extends State<LoginPage> {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
 
-      // Pilih endpoint sesuai role
-      final endpoint = _selectedRole == 'Owner'
-          ? ownerLoginUrl
-          : employeeLoginUrl;
-
-      if (endpoint.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Endpoint login karyawan belum diatur')),
-        );
-        setState(() => _isLoading = false);
-        return;
-      }
-
       try {
         final response = await http.post(
-          Uri.parse(endpoint),
+          Uri.parse(ownerLoginUrl),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'identifier': email, 'password': password}),
         );
@@ -57,21 +39,18 @@ class _LoginPageState extends State<LoginPage> {
         if (response.statusCode == 200 && data['token'] != null) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('token', data['token']);
+          await prefs.setString('Role', data['user']['role']);
 
-          // Simpan email atau name tergantung role
-          if (_selectedRole == 'Owner') {
-            await prefs.setString('userEmail', data['user']['email']);
-            await prefs.setString('Role', 'Owner');
-          } else {
-            await prefs.setString('userEmail', data['employee']['email']);
-            await prefs.setString('Role', 'Employee');
-          }
+          final storedRole = prefs.getString('role');
+          final storedOwnerId = prefs.getString('ownerId');
+
+          print('Role tersimpan: $storedRole');
+          print('Owner ID tersimpan: $storedOwnerId');
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(data['message'] ?? 'Login berhasil')),
           );
 
-          print("Token disimpan, navigasi ke dashboard...");
           Navigator.pushReplacementNamed(context, '/dashboard');
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -143,27 +122,6 @@ class _LoginPageState extends State<LoginPage> {
                           : null,
                     ),
                     const SizedBox(height: 16),
-
-                    DropdownButtonFormField<String>(
-                      value: _selectedRole,
-                      decoration: const InputDecoration(
-                        labelText: 'Login sebagai',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: ['Owner', 'Karyawan']
-                          .map(
-                            (role) => DropdownMenuItem(
-                              value: role,
-                              child: Text(role),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedRole = value!;
-                        });
-                      },
-                    ),
 
                     const SizedBox(height: 24),
                     _isLoading

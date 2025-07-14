@@ -149,7 +149,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 Navigator.pushReplacementNamed(context, '/transactions');
               },
             ),
-            if (_userRole == 'Owner') ...[
+            if (_userRole == 'owner') ...[
               ListTile(
                 leading: const Icon(Icons.menu_book),
                 title: const Text('Menu'),

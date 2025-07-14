@@ -204,7 +204,7 @@ class _TransactionPageState extends State<TransactionPage> {
                 Navigator.pop(context);
               },
             ),
-            if (_userRole == 'Owner') ...[
+            if (_userRole == 'owner') ...[
               ListTile(
                 leading: const Icon(Icons.menu_book),
                 title: const Text('Menu'),
