@@ -174,6 +174,14 @@ class _HistoryPageState extends State<HistoryPage> {
                   Navigator.pushNamed(context, '/employees');
                 },
               ),
+              ListTile(
+                leading: const Icon(Icons.inventory),
+                title: const Text('Stok'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/stocks');
+                },
+              ),
             ],
             ListTile(
               leading: const Icon(Icons.logout),

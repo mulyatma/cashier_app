@@ -1,4 +1,6 @@
 import 'package:cashier_app/pages/add_employee_page.dart';
+import 'package:cashier_app/pages/add_stock_page.dart';
+import 'package:cashier_app/pages/all_stock_page.dart';
 import 'package:cashier_app/pages/history_page.dart';
 import 'package:cashier_app/pages/payment_page.dart';
 import 'package:cashier_app/pages/transaction_detail_page.dart';
@@ -46,6 +48,8 @@ class MainApp extends StatelessWidget {
         '/reports': (context) => const ReportPage(),
         '/employees': (context) => const ManageEmployeesPage(),
         '/add-employee': (context) => const AddEmployeePage(),
+        '/stocks': (context) => const AllStockPage(),
+        '/add-stock': (context) => const AddStockPage(),
       },
       debugShowCheckedModeBanner: false,
     );

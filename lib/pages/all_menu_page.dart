@@ -100,6 +100,14 @@ class _AllMenuPageState extends State<AllMenuPage> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.inventory),
+              title: const Text('Stok'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/stocks');
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
               onTap: () async {
