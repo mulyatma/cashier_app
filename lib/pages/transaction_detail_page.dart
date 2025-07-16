@@ -147,6 +147,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                             "Tanggal: ${formatTanggalDanJam(trx['createdAt'])}",
                           ),
                           Text("ID Transaksi: ${trx['_id']}"),
+                          Text("Pelanggan: ${trx['customer'] ?? '-'}"),
                           const Divider(),
                           ...items.map((item) {
                             final menu = item['menu'];
