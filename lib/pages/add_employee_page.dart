@@ -37,7 +37,7 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
-          'name': _nameController.text.trim(),
+          'username': _nameController.text.trim(),
           'email': _emailController.text.trim(),
           'password': _passwordController.text.trim(),
         }),

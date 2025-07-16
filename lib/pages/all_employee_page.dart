@@ -100,6 +100,14 @@ class _ManageEmployeesPageState extends State<ManageEmployeesPage> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.inventory),
+              title: const Text('Stok'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/stocks');
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
               onTap: () async {
@@ -193,7 +201,7 @@ class _ManageEmployeesPageState extends State<ManageEmployeesPage> {
                               child: Icon(Icons.person, color: Colors.white),
                             ),
                             title: Text(
-                              employee['name'] ?? 'Tanpa Nama',
+                              employee['username'] ?? 'Tanpa Nama',
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
