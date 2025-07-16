@@ -12,6 +12,7 @@ class PaymentPage extends StatefulWidget {
 
 class _PaymentPageState extends State<PaymentPage> {
   final TextEditingController _amountPaidController = TextEditingController();
+  final TextEditingController _customerNameController = TextEditingController();
   int total = 0;
   bool _isSubmitting = false;
 
@@ -74,6 +75,23 @@ class _PaymentPageState extends State<PaymentPage> {
             ),
             const SizedBox(height: 12),
             const Text(
+              'Nama Customer',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+            const SizedBox(height: 4),
+            TextField(
+              controller: _customerNameController,
+              decoration: InputDecoration(
+                fillColor: Colors.white,
+                filled: true,
+                hintText: 'Masukkan nama customer',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
               'Jumlah Bayar',
               style: TextStyle(color: Colors.white, fontSize: 16),
             ),
@@ -114,6 +132,15 @@ class _PaymentPageState extends State<PaymentPage> {
               onPressed: _isSubmitting
                   ? null
                   : () async {
+                      if (_customerNameController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Nama customer wajib diisi'),
+                          ),
+                        );
+                        return;
+                      }
+
                       if (amountPaid < total) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -141,6 +168,7 @@ class _PaymentPageState extends State<PaymentPage> {
                       }
 
                       final body = {
+                        "customer": _customerNameController.text.trim(),
                         "items": items.map((item) {
                           return {
                             "menu": item['_id'],
