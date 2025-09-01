@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'edit_employee_page.dart';
 
 class ManageEmployeesPage extends StatefulWidget {
   const ManageEmployeesPage({super.key});
@@ -209,7 +210,20 @@ class _ManageEmployeesPageState extends State<ManageEmployeesPage> {
                             ),
                             subtitle: Text(employee['email'] ?? ''),
                             onTap: () {
-                              // Nanti bisa navigasi ke halaman detail/edit karyawan
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditEmployeePage(
+                                    employeeId:
+                                        employee['_id'], // ambil id dari API
+                                  ),
+                                ),
+                              ).then((_) {
+                                // Refresh data setelah balik dari halaman edit
+                                setState(() {
+                                  _employeesFuture = fetchEmployees();
+                                });
+                              });
                             },
                           ),
                         );
