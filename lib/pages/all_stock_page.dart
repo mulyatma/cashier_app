@@ -14,7 +14,7 @@ class _AllStockPageState extends State<AllStockPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   late Future<List<dynamic>> _stocksFuture;
-  final Map<String, int> _editedQuantities = {};
+  final Map<String, double> _editedQuantities = {};
   bool _hasChanges = false;
 
   @override
@@ -47,17 +47,17 @@ class _AllStockPageState extends State<AllStockPage> {
     }
   }
 
-  void _increment(String id, int current) {
+  void _increment(String id, double current) {
     setState(() {
-      _editedQuantities[id] = (current + 1);
+      _editedQuantities[id] = (current + 0.1);
       _hasChanges = true;
     });
   }
 
-  void _decrement(String id, int current) {
+  void _decrement(String id, double current) {
     if (current > 0) {
       setState(() {
-        _editedQuantities[id] = (current - 1);
+        _editedQuantities[id] = (current - 0.1).clamp(0, double.infinity);
         _hasChanges = true;
       });
     }
@@ -284,7 +284,7 @@ class _AllStockPageState extends State<AllStockPage> {
                       itemBuilder: (context, index) {
                         final stock = stocks[index];
                         final id = stock['_id'];
-                        final baseQty = stock['quantity'] ?? 0;
+                        final baseQty = stock['quantity'] ?? 0.toDouble();
                         final qty = _editedQuantities[id] ?? baseQty;
 
                         return Dismissible(
@@ -379,7 +379,7 @@ class _AllStockPageState extends State<AllStockPage> {
                                           Icons.remove_circle_outline,
                                         ),
                                       ),
-                                      Text('$qty'),
+                                      Text(qty.toStringAsFixed(1)),
                                       IconButton(
                                         onPressed: () => _increment(id, qty),
                                         icon: const Icon(
