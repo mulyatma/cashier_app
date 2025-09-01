@@ -18,10 +18,109 @@ class _AddMenuPageState extends State<AddMenuPage> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
+  List<Map<String, dynamic>> _ingredients = [];
+  List<dynamic> _stocks = [];
+
   File? _selectedImage;
   bool _isLoading = false;
 
   final picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStocks();
+  }
+
+  Future<void> _fetchStocks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final response = await http.get(
+      Uri.parse("https://be-aplikasi-kasir.vercel.app/api/stocks"),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+
+      setState(() {
+        _stocks = decoded['data'];
+      });
+    } else {
+      throw Exception("Failed to load stocks");
+    }
+  }
+
+  void _showAddIngredientDialog() {
+    String? selectedStockId;
+    final TextEditingController qtyController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text("Tambah Bahan Baku"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<String>(
+                    value: selectedStockId,
+                    hint: const Text("Pilih Bahan Baku"),
+                    items: _stocks.map<DropdownMenuItem<String>>((stock) {
+                      return DropdownMenuItem<String>(
+                        value: stock['_id'],
+                        child: Text("${stock['name']} (${stock['unit']})"),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setStateDialog(() {
+                        selectedStockId = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: qtyController,
+                    decoration: const InputDecoration(
+                      labelText: "Jumlah",
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  child: const Text("Batal"),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                ElevatedButton(
+                  child: const Text("Tambah"),
+                  onPressed: () {
+                    if (selectedStockId != null &&
+                        qtyController.text.isNotEmpty) {
+                      setState(() {
+                        _ingredients.add({
+                          'stockId': selectedStockId,
+                          'quantity': double.parse(qtyController.text),
+                        });
+                      });
+                      Navigator.pop(context);
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   Future<void> _pickImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -61,6 +160,9 @@ class _AddMenuPageState extends State<AddMenuPage> {
           'price': double.parse(_priceController.text.trim()),
           'description': _descriptionController.text.trim(),
           if (imageUrl != null) 'image': imageUrl,
+          'ingredients': _ingredients
+              .map((i) => {'stock': i['stockId'], 'quantity': i['quantity']})
+              .toList(),
         }),
       );
 
@@ -151,7 +253,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                 ),
                 maxLines: 3,
                 validator: (value) {
-                  return null; // Tidak ada validasi, jadi opsional
+                  return null;
                 },
               ),
               const SizedBox(height: 16),
@@ -195,7 +297,48 @@ class _AddMenuPageState extends State<AddMenuPage> {
                         ),
                 ),
               ),
-              const SizedBox(height: 100), // supaya jarak dengan tombol bawah
+              const SizedBox(height: 16),
+              const Text(
+                'Resep (Ingredients)',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 8),
+              Column(
+                children: _ingredients.map((ing) {
+                  dynamic stock;
+                  try {
+                    stock = _stocks.firstWhere(
+                      (s) => s['_id'] == ing['stockId'],
+                    );
+                  } catch (e) {
+                    stock = null;
+                  }
+                  return ListTile(
+                    title: Text(stock != null ? stock['name'] : 'Unknown'),
+                    subtitle: Text(
+                      'Jumlah: ${ing['quantity']} ${stock?['unit'] ?? ''}',
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        setState(() {
+                          _ingredients.remove(ing);
+                        });
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton.icon(
+                onPressed: _stocks.isEmpty
+                    ? null
+                    : () => _showAddIngredientDialog(),
+                icon: const Icon(Icons.add),
+                label: const Text("Tambah Bahan Baku"),
+              ),
+
+              const SizedBox(height: 100),
             ],
           ),
         ),

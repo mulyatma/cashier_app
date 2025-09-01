@@ -19,11 +19,39 @@ class _EditMenuPageState extends State<EditMenuPage> {
   final TextEditingController _descriptionController = TextEditingController();
 
   bool _isLoading = false;
+  List<Map<String, dynamic>> _ingredients = [];
+  List<dynamic> _availableStocks = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchMenuDetail();
+    _fetchStocks().then((_) {
+      _fetchMenuDetail();
+    });
+  }
+
+  Future<void> _fetchStocks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) return;
+
+    final response = await http.get(
+      Uri.parse('https://be-aplikasi-kasir.vercel.app/api/stocks'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+
+      setState(() {
+        _availableStocks = decoded['data'] ?? []; // ✅ ambil data list
+      });
+    } else {
+      debugPrint("Gagal fetch stocks: ${response.statusCode}");
+    }
   }
 
   Future<void> _fetchMenuDetail() async {
@@ -40,9 +68,7 @@ class _EditMenuPageState extends State<EditMenuPage> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     final response = await http.get(
       Uri.parse(
@@ -60,6 +86,19 @@ class _EditMenuPageState extends State<EditMenuPage> {
         _nameController.text = data['name'] ?? '';
         _priceController.text = data['price'].toString();
         _descriptionController.text = data['description'] ?? '';
+        _ingredients = (data['ingredients'] as List? ?? [])
+            .map((ing) {
+              final stock = ing['stock'];
+              return {
+                'stockId': stock is Map
+                    ? stock['_id'].toString()
+                    : stock.toString(),
+                'stockName': stock is Map ? stock['name'] ?? '' : '',
+                'quantity': (ing['quantity'] as num).toDouble(),
+              };
+            })
+            .toList()
+            .cast<Map<String, dynamic>>();
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -70,9 +109,7 @@ class _EditMenuPageState extends State<EditMenuPage> {
       Navigator.pop(context);
     }
 
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() => _isLoading = false);
   }
 
   Future<void> _updateMenu() async {
@@ -97,6 +134,7 @@ class _EditMenuPageState extends State<EditMenuPage> {
       'name': _nameController.text.trim(),
       'price': int.parse(_priceController.text.trim()),
       'description': _descriptionController.text.trim(),
+      'ingredients': _ingredients,
     });
 
     final response = await http.put(
@@ -124,6 +162,18 @@ class _EditMenuPageState extends State<EditMenuPage> {
     }
 
     setState(() => _isLoading = false);
+  }
+
+  void _addIngredient() {
+    setState(() {
+      _ingredients.add({'stockId': null, 'quantity': 1});
+    });
+  }
+
+  void _removeIngredient(int index) {
+    setState(() {
+      _ingredients.removeAt(index);
+    });
   }
 
   @override
@@ -156,12 +206,9 @@ class _EditMenuPageState extends State<EditMenuPage> {
                         hintText: 'Masukkan nama menu',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Nama menu wajib diisi';
-                        }
-                        return null;
-                      },
+                      validator: (value) => value == null || value.isEmpty
+                          ? 'Nama menu wajib diisi'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     const Text(
@@ -180,12 +227,10 @@ class _EditMenuPageState extends State<EditMenuPage> {
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.isEmpty)
                           return 'Harga wajib diisi';
-                        }
-                        if (int.tryParse(value) == null) {
+                        if (int.tryParse(value) == null)
                           return 'Harga harus berupa angka';
-                        }
                         return null;
                       },
                     ),
@@ -206,6 +251,98 @@ class _EditMenuPageState extends State<EditMenuPage> {
                       ),
                       maxLines: 3,
                     ),
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Bahan / Ingredients',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ..._ingredients.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final ingredient = entry.value;
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: DropdownButtonFormField<String>(
+                                  value:
+                                      _availableStocks.any(
+                                        (s) =>
+                                            s['_id'].toString() ==
+                                            ingredient['stockId'].toString(),
+                                      )
+                                      ? ingredient['stockId'].toString()
+                                      : null,
+                                  items: _availableStocks
+                                      .map<DropdownMenuItem<String>>((stock) {
+                                        return DropdownMenuItem<String>(
+                                          value: stock['_id'].toString(),
+                                          child: Text(stock['name']),
+                                        );
+                                      })
+                                      .toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _ingredients[index]['stockId'] = value!;
+                                    });
+                                  },
+                                  decoration: const InputDecoration(
+                                    labelText: 'Bahan',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) =>
+                                      value == null ? 'Pilih bahan' : null,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 2,
+                                child: TextFormField(
+                                  initialValue: ingredient['quantity']
+                                      .toString(),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Jumlah',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
+                                  onChanged: (val) {
+                                    _ingredients[index]['quantity'] =
+                                        double.tryParse(val) ?? 1.0;
+                                  },
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => _removeIngredient(index),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                    TextButton.icon(
+                      onPressed: _addIngredient,
+                      icon: const Icon(Icons.add, color: Colors.green),
+                      label: const Text(
+                        'Tambah Bahan',
+                        style: TextStyle(color: Colors.green),
+                      ),
+                    ),
+
                     const SizedBox(height: 100),
                   ],
                 ),
